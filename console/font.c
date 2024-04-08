@@ -1,0 +1,17 @@
+#include <myBigChars.h>
+
+int
+main ()
+{
+  int font[] = { 0xFF818181, 0x818181FF, 0x3050901,  0x1010101,  0xFF0101FF,
+                 0x808080FF, 0xFF0101FF, 0x10101FF,  0x818181FF, 0x1010101,
+                 0xFF8080FF, 0x10101FF,  0xFE8180FF, 0x818181FF, 0xFF02047E,
+                 0x10204080, 0xFF8181FF, 0xFF8181FF, 0xFF8181FF, 0x101817F,
+                 0x182442FF, 0x81818181, 0xFF8182FC, 0x848281FF, 0x1F204080,
+                 0x8040201F, 0xF8848281, 0x818284F8, 0xFF8080FF, 0x808080FF,
+                 0xFF80FF80, 0x80808080, 0x101010FE, 0x10101000, 0x3050901,
+                 0x1010101 };
+  int fd = open ("font.bin", O_RDWR);
+  bc_bigcharwrite (fd, font, 18);
+  return 0;
+}
