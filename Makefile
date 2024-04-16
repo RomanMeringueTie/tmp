@@ -48,6 +48,8 @@ clean:
 	rm console/*.o
 	rm myBigChars/*.o
 	rm myBigChars/*.a
+	rm myReadKey/*.o
+	rm myReadKey/*.a
 	rm console/concole
 
 .PHONY: run

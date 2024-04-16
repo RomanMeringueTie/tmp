@@ -10,15 +10,21 @@ rk_readvalue (int *value, int timeout)
   int fd = open ("/dev/tty", O_RDWR);
   char str[10];
   int i = 0;
-  while (1)
+  while (i < 5)
     {
       read (fd, &(str[i]), 1);
       if (str[i] == 0xd)
         break;
       if (!(str[i] >= '0' && str[i] <= '9'))
         return -1;
+      mt_setfgcolor (fg_green);
+      mt_setbgcolor (bg_white);
+      printf ("%c", str[i]);
+      fflush (stdout);
       i++;
     }
   *value = atoi (str);
+  mt_setdefaultcolor ();
+  fflush (stdout);
   return 0;
 }

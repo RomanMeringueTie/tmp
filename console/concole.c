@@ -13,6 +13,7 @@ main (int argc, char **argv)
         fd = open (argv[1], O_RDONLY);
       else
         fd = open ("console/font.bin", O_RDONLY);
+
       int font_array[36];
       int *count = malloc (sizeof (int));
       bc_bigcharread (fd, font_array, 18, count);
@@ -23,6 +24,8 @@ main (int argc, char **argv)
         return -1;
       if (cols < 150 && rows < 35)
         return -1;
+      mt_setdefaultcolor ();
+      rk_mytermsave ();
       sc_memoryInit ();
       sc_regInit ();
       sc_accumulatorInit ();
@@ -50,7 +53,7 @@ main (int argc, char **argv)
       char *io = bc_encode ("IN/OUT");
       char *k = bc_encode ("Keys");
       mt_setcursorvisible (0);
-      for (int i = 0; i < 127; i++)
+      for (int i = 0; i < 128; i++)
         printCell (i, fg_green, bg_black);
       mt_setdefaultcolor ();
       printAccumulator ();
@@ -59,14 +62,12 @@ main (int argc, char **argv)
       printCommand ();
       printKeys ();
       bc_box (1, 1, 105, 20, fg_white, fg_black, rm, fg_blue, fg_black);
-      for (int i = 0; i < 128; i++)
-        printCell (i, fg_green, bg_black);
       bc_box (150, 1, 50, 15, fg_white, fg_black, zd, fg_blue, fg_black);
       bc_box (110, 1, 20, 2, fg_white, fg_black, ac, fg_blue, fg_black);
       bc_box (110, 7, 20, 2, fg_white, fg_black, fl, fg_blue, fg_black);
       bc_box (110, 13, 20, 2, fg_white, fg_black, ic, fg_blue, fg_black);
       bc_box (110, 19, 20, 2, fg_white, fg_black, co, fg_blue, fg_black);
-      bc_box (150, 19, 45, 2, fg_white, fg_black, dc, fg_blue, fg_black);
+      bc_box (150, 19, 50, 2, fg_white, fg_black, dc, fg_blue, fg_black);
       bc_box (1, 22, 20, 4, fg_white, fg_black, io, fg_blue, fg_black);
       bc_box (25, 22, 45, 4, fg_white, fg_black, k, fg_blue, fg_black);
       mt_setdefaultcolor ();
@@ -74,7 +75,6 @@ main (int argc, char **argv)
       printCounters ();
       printFlags ();
       printCommand ();
-      mt_setdefaultcolor ();
       // for (int i = 0; i < 7; i++)
       //   printTerm (i * 20 + 1, 1);
       int x = 0;
@@ -83,6 +83,7 @@ main (int argc, char **argv)
       fflush (stdout);
       enum keys key;
       rk_mytermregime (0, 0, 0, 0, 0);
+      fflush (stdout);
       printCell (0, fg_green, bg_white);
       printBigCell (font_array, 0);
       printDecodedCommand (ram[0]);
@@ -96,6 +97,7 @@ main (int argc, char **argv)
       printf ("next: +%.4x", ram[1]);
       fflush (stdout);
       int prev_index = 0;
+      fflush (stdout);
       while (key != 9)
         {
           fflush (stdout);
@@ -121,17 +123,145 @@ main (int argc, char **argv)
           else if (key == 3)
             {
               if (y == 0)
-                y = 7;
+                y = 8;
               y--;
+            }
+          else if (key == 6)
+            {
+              fflush (stdout);
+              char filename[20];
+              mt_gotoXY (33, 1);
+              printf ("Save file name:                    ");
+              fflush (stdout);
+              scanf ("%s", filename);
+              sc_memorySave (filename);
+              mt_gotoXY (33, 19);
+              printf ("%s", filename);
+              fflush (stdout);
+            }
+          else if (key == 4)
+            {
+              fflush (stdout);
+              char filename[20];
+              mt_gotoXY (34, 1);
+              printf ("Load file name:                    ");
+              fflush (stdout);
+              scanf ("%s", filename);
+              if (sc_memoryLoad (filename) != 0)
+                {
+                  mt_gotoXY (34, 19);
+                  printf ("No such save file");
+                  fflush (stdout);
+                }
+              mt_gotoXY (34, 19);
+              printf ("%s", filename);
+              fflush (stdout);
+              mt_setdefaultcolor ();
+              for (int i = 0; i < 128; i++)
+                printCell (i, fg_green, bg_black);
+              bc_box (1, 1, 105, 20, fg_white, fg_black, rm, fg_blue,
+                      fg_black);
+              bc_box (150, 1, 50, 15, fg_white, fg_black, zd, fg_blue,
+                      fg_black);
+              bc_box (110, 1, 20, 2, fg_white, fg_black, ac, fg_blue,
+                      fg_black);
+              bc_box (110, 7, 20, 2, fg_white, fg_black, fl, fg_blue,
+                      fg_black);
+              bc_box (110, 13, 20, 2, fg_white, fg_black, ic, fg_blue,
+                      fg_black);
+              bc_box (110, 19, 20, 2, fg_white, fg_black, co, fg_blue,
+                      fg_black);
+              bc_box (150, 19, 50, 2, fg_white, fg_black, dc, fg_blue,
+                      fg_black);
+              bc_box (1, 22, 20, 4, fg_white, fg_black, io, fg_blue, fg_black);
+              bc_box (25, 22, 45, 4, fg_white, fg_black, k, fg_blue, fg_black);
+              mt_setdefaultcolor ();
+              printAccumulator ();
+              printCounters ();
+              printFlags ();
+              printCommand ();
+              fflush (stdout);
             }
           else if (key == 10)
             {
+              mt_gotoXY (24, 6);
+              printf ("addr %d < +%.4x", prev_index, ram[prev_index]);
+              fflush (stdout);
               int new_value = 0;
               mt_gotoXY (((x * 8 + y) / 8) + 3, ((x * 8 + y) % 8) * 12 + 10);
-              rk_readvalue (&new_value, 10);
-              ram[(x * 8 + y)] = new_value;
+              mt_setbgcolor (bg_black);
+              mt_setfgcolor (fg_green);
+              printf ("     \n");
+              fflush (stdout);
+              mt_gotoXY (((x * 8 + y) / 8) + 3, ((x * 8 + y) % 8) * 12 + 10);
+              fflush (stdout);
+              int tmp = rk_readvalue (&new_value, 10);
+              if (tmp != -1 && sc_commandValidate (new_value) != -1)
+                ram[(x * 8 + y)] = new_value;
               printCell (y + x * 8, fg_green, bg_white);
               mt_setdefaultcolor ();
+              // fflush (stdout);
+            }
+          else if (key == 11)
+            {
+              int new_value = 0;
+              mt_gotoXY (2, 118);
+              mt_setdefaultcolor ();
+              printf (">        \n");
+              fflush (stdout);
+              mt_gotoXY (2, 118);
+              fflush (stdout);
+              rk_readvalue (&new_value, 10);
+              accumulator = new_value;
+              printAccumulator ();
+              fflush (stdout);
+            }
+          else if (key == 12)
+            {
+              int new_value = 0;
+              mt_gotoXY (14, 119);
+              mt_setdefaultcolor ();
+              printf (">        \n");
+              fflush (stdout);
+              mt_gotoXY (14, 119);
+              fflush (stdout);
+              rk_readvalue (&new_value, 10);
+              command = new_value;
+              printCounters ();
+              fflush (stdout);
+            }
+          else if (key == 8)
+            {
+              free (ram);
+              mt_setdefaultcolor ();
+              sc_memoryInit ();
+              sc_memoryInit ();
+              sc_regInit ();
+              sc_accumulatorInit ();
+              sc_icounterInit ();
+              for (int i = 0; i < 128; i++)
+                printCell (i, fg_green, bg_black);
+              bc_box (1, 1, 105, 20, fg_white, fg_black, rm, fg_blue,
+                      fg_black);
+              bc_box (150, 1, 50, 15, fg_white, fg_black, zd, fg_blue,
+                      fg_black);
+              bc_box (110, 1, 20, 2, fg_white, fg_black, ac, fg_blue,
+                      fg_black);
+              bc_box (110, 7, 20, 2, fg_white, fg_black, fl, fg_blue,
+                      fg_black);
+              bc_box (110, 13, 20, 2, fg_white, fg_black, ic, fg_blue,
+                      fg_black);
+              bc_box (110, 19, 20, 2, fg_white, fg_black, co, fg_blue,
+                      fg_black);
+              bc_box (150, 19, 50, 2, fg_white, fg_black, dc, fg_blue,
+                      fg_black);
+              bc_box (1, 22, 20, 4, fg_white, fg_black, io, fg_blue, fg_black);
+              bc_box (25, 22, 45, 4, fg_white, fg_black, k, fg_blue, fg_black);
+              mt_setdefaultcolor ();
+              printAccumulator ();
+              printCounters ();
+              printFlags ();
+              printCommand ();
               fflush (stdout);
             }
           printDecodedCommand (ram[y + x * 8]);
@@ -161,8 +291,11 @@ main (int argc, char **argv)
       free (co);
       free (dc);
       free (io);
+      mt_setcursorvisible (1);
+      mt_gotoXY (70, 1);
+      rk_mytermregime (1, 0, 0, 0, 0);
+      mt_setfgcolor (fg_black);
       return 0;
     }
-  fflush (stdout);
   return -1;
 }

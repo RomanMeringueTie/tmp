@@ -1,10 +1,10 @@
 #pragma once
 #include <fcntl.h>
 #include <limits.h>
+#include <myTerm.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <myTerm.h>
 
 extern int *ram;
 
@@ -64,4 +64,4 @@ void printCommand (void);
 
 void printBigCell (int *font, int index);
 
-void printKeys(void);
+void printKeys (void);
