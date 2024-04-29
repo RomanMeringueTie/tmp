@@ -6,7 +6,7 @@
 int
 sc_regSet (int reg, int value)
 {
-  if (reg < 0 || reg > 5)
+  if (reg < 1 || reg > 5)
     return -1;
   if (value)
     flag = FLAG_SET (reg);

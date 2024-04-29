@@ -27,16 +27,20 @@ myBigChars/bc*.o: myBigChars/bc*.c
 myTerm/mt_lib.a: myTerm/*.o
 	ar rcs myTerm/mt_lib.a myTerm/*.o
 
-mySimpleComputer/sc_lib.a: mySimpleComputer/sc*.o console/print*.o
-	ar rcs mySimpleComputer/sc_lib.a mySimpleComputer/sc*.o console/print*.o
+mySimpleComputer/sc_lib.a: mySimpleComputer/sc*.o console/print*.o mySimpleComputer/ALU.o mySimpleComputer/IRC.o mySimpleComputer/CU.o mySimpleComputer/reset_sig.o
+	ar rcs mySimpleComputer/sc_lib.a mySimpleComputer/sc*.o console/print*.o mySimpleComputer/ALU.o mySimpleComputer/IRC.o mySimpleComputer/CU.o mySimpleComputer/reset_sig.o
 
 myTerm/*.o: myTerm/*.c
 	gcc -g -c -Iinclude/ myTerm/*.c
 	cp *.o myTerm
 	rm *.o
 
-mySimpleComputer/sc*.o: mySimpleComputer/sc*.c
-	gcc -g -c -Iinclude/ mySimpleComputer/sc*.c
+mySimpleComputer/sc*.o: mySimpleComputer/sc*.c mySimpleComputer/ALU.c mySimpleComputer/IRC.c mySimpleComputer/CU.c mySimpleComputer/reset_sig.c
+	gcc -g -c -Iinclude/ mySimpleComputer/sc*.c 
+	gcc -g -c -Iinclude/ mySimpleComputer/ALU.c
+	gcc -g -c -Iinclude/ mySimpleComputer/CU.c
+	gcc -g -c -Iinclude/ mySimpleComputer/IRC.c
+	gcc -g -c -Iinclude/ mySimpleComputer/reset_sig.c
 	cp *.o mySimpleComputer
 	rm *.o
 

@@ -13,7 +13,6 @@ main (int argc, char **argv)
         fd = open (argv[1], O_RDONLY);
       else
         fd = open ("console/font.bin", O_RDONLY);
-
       int font_array[36];
       int *count = malloc (sizeof (int));
       bc_bigcharread (fd, font_array, 18, count);
@@ -28,20 +27,16 @@ main (int argc, char **argv)
       rk_mytermsave ();
       sc_memoryInit ();
       sc_regInit ();
+      sc_regSet (4, 1);
       sc_accumulatorInit ();
       sc_icounterInit ();
       for (int i = 0; i < 128; i++)
         {
-          if (sc_memorySet (i, 10 * i) != 0)
+          if (sc_memorySet (i, 0) != 0)
             {
               return -1;
             }
         }
-      sc_regSet (1, 1);
-      sc_regSet (2, 1);
-      sc_regSet (5, 1);
-      sc_accumulatorSet (5093);
-      sc_icounterSet (15);
       mt_clrscr ();
       char *rm = bc_encode ("Memory");
       char *ac = bc_encode ("Accumulator");
@@ -75,13 +70,13 @@ main (int argc, char **argv)
       printCounters ();
       printFlags ();
       printCommand ();
-      // for (int i = 0; i < 7; i++)
-      //   printTerm (i * 20 + 1, 1);
       int x = 0;
       int y = 0;
       mt_gotoXY (x, y);
       fflush (stdout);
       enum keys key;
+      rk_mytermrestore ();
+      // rk_mytermsave ();
       rk_mytermregime (0, 0, 0, 0, 0);
       fflush (stdout);
       printCell (0, fg_green, bg_white);
@@ -98,10 +93,18 @@ main (int argc, char **argv)
       fflush (stdout);
       int prev_index = 0;
       fflush (stdout);
+      signal (SIGALRM, IRC);
+      signal (SIGUSR1, reset_sig);
       while (key != 9)
         {
           fflush (stdout);
           rk_readkey (&key);
+          if (key == 5)
+            {
+              raise (SIGALRM);
+              sc_regSet (4, 0);
+              printFlags ();
+            }
           if (key == 0)
             {
               if (x == 0)
@@ -200,7 +203,6 @@ main (int argc, char **argv)
                 ram[(x * 8 + y)] = new_value;
               printCell (y + x * 8, fg_green, bg_white);
               mt_setdefaultcolor ();
-              // fflush (stdout);
             }
           else if (key == 11)
             {
@@ -232,37 +234,7 @@ main (int argc, char **argv)
             }
           else if (key == 8)
             {
-              free (ram);
-              mt_setdefaultcolor ();
-              sc_memoryInit ();
-              sc_memoryInit ();
-              sc_regInit ();
-              sc_accumulatorInit ();
-              sc_icounterInit ();
-              for (int i = 0; i < 128; i++)
-                printCell (i, fg_green, bg_black);
-              bc_box (1, 1, 105, 20, fg_white, fg_black, rm, fg_blue,
-                      fg_black);
-              bc_box (150, 1, 50, 15, fg_white, fg_black, zd, fg_blue,
-                      fg_black);
-              bc_box (110, 1, 20, 2, fg_white, fg_black, ac, fg_blue,
-                      fg_black);
-              bc_box (110, 7, 20, 2, fg_white, fg_black, fl, fg_blue,
-                      fg_black);
-              bc_box (110, 13, 20, 2, fg_white, fg_black, ic, fg_blue,
-                      fg_black);
-              bc_box (110, 19, 20, 2, fg_white, fg_black, co, fg_blue,
-                      fg_black);
-              bc_box (150, 19, 50, 2, fg_white, fg_black, dc, fg_blue,
-                      fg_black);
-              bc_box (1, 22, 20, 4, fg_white, fg_black, io, fg_blue, fg_black);
-              bc_box (25, 22, 45, 4, fg_white, fg_black, k, fg_blue, fg_black);
-              mt_setdefaultcolor ();
-              printAccumulator ();
-              printCounters ();
-              printFlags ();
-              printCommand ();
-              fflush (stdout);
+              raise (SIGUSR1);
             }
           printDecodedCommand (ram[y + x * 8]);
           printCell (prev_index, fg_green, bg_black);
@@ -293,8 +265,9 @@ main (int argc, char **argv)
       free (io);
       mt_setcursorvisible (1);
       mt_gotoXY (70, 1);
-      rk_mytermregime (1, 0, 0, 0, 0);
+      rk_mytermrestore ();
       mt_setfgcolor (fg_black);
+      fflush (stdout);
       return 0;
     }
   return -1;

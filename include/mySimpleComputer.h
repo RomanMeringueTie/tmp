@@ -2,6 +2,7 @@
 #include <fcntl.h>
 #include <limits.h>
 #include <myTerm.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -65,3 +66,11 @@ void printCommand (void);
 void printBigCell (int *font, int index);
 
 void printKeys (void);
+
+int ALU (int com, int oper);
+
+void CU (void);
+
+void IRC (int signum);
+
+void reset_sig (int sig);
